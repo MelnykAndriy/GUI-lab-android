@@ -10,6 +10,7 @@ import com.msgtrik.msgtrik.models.chat.NewMessageRequest
 import com.msgtrik.msgtrik.models.chat.ChatMessage
 import com.msgtrik.msgtrik.models.chat.RecentChatsResponse
 import com.msgtrik.msgtrik.models.chat.ChatMessagesResponse
+import com.msgtrik.msgtrik.models.chat.MarkReadResponse
 
 interface ChatService {
     @GET("/api/chats/")
@@ -24,4 +25,7 @@ interface ChatService {
 
     @POST("/api/chats/messages/")
     fun sendMessage(@Body request: NewMessageRequest): Call<ChatMessage>
+
+    @POST("/api/chats/messages/{userId}/read/")
+    fun markMessagesAsRead(@Path("userId") userId: Int): Call<MarkReadResponse>
 } 
