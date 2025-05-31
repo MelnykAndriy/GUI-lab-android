@@ -19,6 +19,8 @@ import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.msgtrik.msgtrik.ui.activities.RegisterActivity
+import androidx.compose.ui.platform.LocalContext
 
 class LoginActivity : ComponentActivity() {
     private lateinit var preferenceManager: PreferenceManager
@@ -51,6 +53,7 @@ class LoginActivity : ComponentActivity() {
         var email by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var isLoading by remember { mutableStateOf(false) }
+        val context = LocalContext.current
 
         Column(
             modifier = Modifier
@@ -88,6 +91,17 @@ class LoginActivity : ComponentActivity() {
                 } else {
                     Text("Login")
                 }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = {
+                    context.startActivity(Intent(context, RegisterActivity::class.java))
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Register")
             }
         }
     }
