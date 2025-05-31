@@ -5,13 +5,35 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.msgtrik.msgtrik.R
 import com.msgtrik.msgtrik.models.auth.AuthResponse
 import com.msgtrik.msgtrik.models.auth.LoginRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
@@ -19,8 +41,6 @@ import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import com.msgtrik.msgtrik.ui.activities.RegisterActivity
-import androidx.compose.ui.platform.LocalContext
 
 class LoginActivity : ComponentActivity() {
     private lateinit var preferenceManager: PreferenceManager
@@ -62,6 +82,19 @@ class LoginActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Logo and Slogan
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.mipmap.ic_launcher_round),
+                    contentDescription = "App Logo",
+                    modifier = Modifier.size(96.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text("Welcome to Msgtrik.", style = MaterialTheme.typography.h6)
+            Spacer(modifier = Modifier.height(24.dp))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
