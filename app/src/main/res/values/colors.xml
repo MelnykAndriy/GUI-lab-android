@@ -10,4 +10,6 @@
     <color name="bg_yellow_500">#EAB308</color>
     <color name="bg_pink_500">#EC4899</color>
     <color name="bg_indigo_500">#6366F1</color>
+    <color name="message_sent_background">#8B7CFF</color>
+    <color name="message_received_background">#F1F5F9</color>
 </resources>

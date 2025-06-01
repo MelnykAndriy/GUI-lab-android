@@ -6,14 +6,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -31,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +46,9 @@ import com.msgtrik.msgtrik.models.chat.ChatUser
 import com.msgtrik.msgtrik.models.chat.NewMessageRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
 import com.msgtrik.msgtrik.ui.components.UserAvatar
+import com.msgtrik.msgtrik.ui.theme.ChatColors
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -62,17 +67,26 @@ fun ChatScreen(
     var currentPage by remember { mutableStateOf(1) }
     var hasMoreMessages by remember { mutableStateOf(true) }
     var isLoadingMore by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    
+    // Polling interval in milliseconds (3 seconds)
+    val pollingInterval = 3000L
+    
+    // Remember the list state to maintain scroll position
+    val listState = rememberLazyListState()
+    
+    // Remember coroutine scope for animations
+    val coroutineScope = rememberCoroutineScope()
 
     // Function to load messages
     fun loadMessages(page: Int = 1, loadingMore: Boolean = false) {
         if (loadingMore) {
             if (!hasMoreMessages || isLoading) return
         }
-
+        
         if (loadingMore) {
             isLoadingMore = true
-        } else {
+        } else if (messages.isEmpty()) {
+            // Only show loading indicator for initial load
             isLoading = true
         }
 
@@ -90,18 +104,35 @@ fun ChatScreen(
                                 timestamp = it.timestamp
                             )
                         }
-
+                        
                         // Update pagination state
                         hasMoreMessages =
                             newMessages.isNotEmpty() && page < response.body()!!.pagination.pages
-
-                        // Merge and sort messages
-                        messages = if (loadingMore) {
-                            (messages + newMessages)
+                        
+                        // For polling (page 1), check if we have new messages
+                        if (page == 1 && !loadingMore) {
+                            val existingMessageIds = messages.map { "${it.text}${it.timestamp}" }.toSet()
+                            val newMessagesList = newMessages.filterNot { 
+                                "${it.text}${it.timestamp}" in existingMessageIds 
+                            }
+                            
+                            if (newMessagesList.isNotEmpty()) {
+                                // Only add new messages to the existing list
+                                messages = (newMessagesList + messages)
+                                    .sortedByDescending { it.timestamp }
+                                
+                                // Auto-scroll to bottom if we're already at the bottom
+                                if (listState.firstVisibleItemIndex == 0) {
+                                    coroutineScope.launch {
+                                        listState.animateScrollToItem(0)
+                                    }
+                                }
+                            }
+                        } else {
+                            // For pagination, merge with existing messages
+                            messages = (messages + newMessages)
                                 .distinctBy { "${it.text}${it.timestamp}" }
                                 .sortedByDescending { it.timestamp }
-                        } else {
-                            newMessages.sortedByDescending { it.timestamp }
                         }
                     } else {
                         error = "Failed to load messages"
@@ -121,6 +152,19 @@ fun ChatScreen(
     // Load initial messages
     LaunchedEffect(selectedUser.id) {
         loadMessages()
+    }
+
+    // Set up polling with error handling and backoff
+    LaunchedEffect(selectedUser.id) {
+        while (true) {
+            try {
+                delay(pollingInterval)
+                loadMessages(page = 1)
+            } catch (e: Exception) {
+                // If there's an error, wait a bit longer before retrying
+                delay(pollingInterval * 2)
+            }
+        }
     }
 
     Column(
@@ -157,7 +201,7 @@ fun ChatScreen(
         // Messages
         Box(modifier = Modifier.weight(1f)) {
             when {
-                isLoading && !isLoadingMore -> {
+                isLoading && messages.isEmpty() -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
@@ -186,6 +230,7 @@ fun ChatScreen(
 
                 else -> {
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 8.dp),
@@ -206,11 +251,14 @@ fun ChatScreen(
                                 }
                             }
                         }
-
-                        items(messages) { message ->
+                        
+                        items(
+                            items = messages,
+                            key = { message: Message -> "${message.text}${message.timestamp}" }
+                        ) { message ->
                             MessageItem(message = message)
                         }
-
+                        
                         // Load more when reaching the top
                         if (hasMoreMessages) {
                             item {
@@ -259,19 +307,28 @@ fun ChatScreen(
                                 ) {
                                     if (response.isSuccessful && response.body() != null) {
                                         val newMessage = response.body()
+                                        // Add the new message to the beginning of the list (since we're using reverseLayout)
                                         messages = listOf(
                                             Message(
-                                                newMessage!!.content,
-                                                newMessage.senderId == currentUserId,
-                                                newMessage.timestamp
+                                                text = newMessage!!.content,
+                                                isSentByUser = true,
+                                                timestamp = newMessage.timestamp
                                             )
                                         ) + messages
+
+                                        // Clear the input field
                                         messageText = ""
+
+                                        // Scroll to the bottom (which is actually the top in reverseLayout)
+                                        coroutineScope.launch {
+                                            listState.animateScrollToItem(0)
+                                        }
                                     }
                                 }
 
                                 override fun onFailure(call: Call<ChatMessage>, t: Throwable) {
-                                    // Handle error
+                                    // Show error to user
+                                    error = "Failed to send message: ${t.message}"
                                 }
                             })
                         }
@@ -288,9 +345,9 @@ fun ChatScreen(
 fun MessageItem(message: Message) {
     val alignment = if (message.isSentByUser) Alignment.CenterEnd else Alignment.CenterStart
     val backgroundColor = if (message.isSentByUser) {
-        MaterialTheme.colors.primary.copy(alpha = 0.1f)
+        ChatColors.messageSentBackground()
     } else {
-        MaterialTheme.colors.secondary.copy(alpha = 0.12f)
+        ChatColors.messageReceivedBackground()
     }
     val shape = if (message.isSentByUser) {
         RoundedCornerShape(8.dp, 0.dp, 8.dp, 8.dp)
