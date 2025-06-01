@@ -1,22 +1,31 @@
 package com.msgtrik.msgtrik.ui.screens
 
+import android.app.DatePickerDialog
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +46,8 @@ import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Calendar
+import java.util.regex.Pattern
 
 @Composable
 fun RegisterScreen(onRegisterSuccess: () -> Unit) {
@@ -47,15 +58,64 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
     var dob by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var genderDropdownExpanded by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+
+    // Email validation pattern
+    val emailPattern = Pattern.compile(
+        "[a-zA-Z0-9+._%\\-]{1,256}" +
+                "@" +
+                "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
+                "(" +
+                "\\." +
+                "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
+                ")+"
+    )
+
+    // Password validation function
+    fun validatePassword(pass: String): String? {
+        return when {
+            pass.length < 8 -> "Password must be at least 8 characters long"
+            !pass.any { it.isUpperCase() } -> "Password must contain at least one uppercase letter"
+            !pass.any { it.isLowerCase() } -> "Password must contain at least one lowercase letter"
+            !pass.any { it.isDigit() } -> "Password must contain at least one number"
+            !pass.any { !it.isLetterOrDigit() } -> "Password must contain at least one special character"
+            else -> null
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Back button and title row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {
+                    context.startActivity(Intent(context, LoginActivity::class.java))
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back to Login"
+                )
+            }
+        }
+
         // Logo and Slogan
         Box(
             contentAlignment = Alignment.Center
@@ -71,6 +131,8 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
         Spacer(modifier = Modifier.height(4.dp))
         Text("Join our community and start chatting", style = MaterialTheme.typography.body2)
         Spacer(modifier = Modifier.height(24.dp))
+
+        // Name field
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
@@ -78,39 +140,103 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             modifier = Modifier.width(280.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Email field with validation
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { 
+                email = it
+                emailError = if (it.isNotEmpty() && !emailPattern.matcher(it).matches()) {
+                    "Please enter a valid email address"
+                } else null
+            },
             label = { Text("Email") },
+            isError = emailError != null,
             modifier = Modifier.width(280.dp)
         )
+        if (emailError != null) {
+            Text(
+                text = emailError!!,
+                color = MaterialTheme.colors.error,
+                style = MaterialTheme.typography.caption,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Password field with validation
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it
+                passwordError = validatePassword(it)
+            },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
+            isError = passwordError != null,
             modifier = Modifier.width(280.dp)
         )
+        if (passwordError != null) {
+            Text(
+                text = passwordError!!,
+                color = MaterialTheme.colors.error,
+                style = MaterialTheme.typography.caption,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = gender,
-            onValueChange = { gender = it },
-            label = { Text("Gender (male/female/other)") },
-            modifier = Modifier.width(280.dp)
-        )
+
+        // Gender picker dropdown
+        Box {
+            OutlinedButton(
+                onClick = { genderDropdownExpanded = true },
+                modifier = Modifier.width(280.dp)
+            ) {
+                Text(if (gender.isNotBlank()) gender.replaceFirstChar { it.uppercase() } else "Select Gender")
+            }
+            DropdownMenu(
+                expanded = genderDropdownExpanded,
+                onDismissRequest = { genderDropdownExpanded = false }
+            ) {
+                DropdownMenuItem(onClick = {
+                    gender = "male"
+                    genderDropdownExpanded = false
+                }) { Text("Male") }
+                DropdownMenuItem(onClick = {
+                    gender = "female"
+                    genderDropdownExpanded = false
+                }) { Text("Female") }
+                DropdownMenuItem(onClick = {
+                    gender = "other"
+                    genderDropdownExpanded = false
+                }) { Text("Other") }
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = dob,
-            onValueChange = { dob = it },
-            label = { Text("Date of Birth (YYYY-MM-DD)") },
+
+        // Date of Birth picker
+        val calendar = Calendar.getInstance()
+        val year = dob.take(4).toIntOrNull() ?: calendar.get(Calendar.YEAR)
+        val month = dob.drop(5).take(2).toIntOrNull()?.minus(1) ?: calendar.get(Calendar.MONTH)
+        val day = dob.takeLast(2).toIntOrNull() ?: calendar.get(Calendar.DAY_OF_MONTH)
+
+        OutlinedButton(
+            onClick = {
+                DatePickerDialog(context, { _, y, m, d ->
+                    dob = String.format("%04d-%02d-%02d", y, m + 1, d)
+                }, year, month, day).show()
+            },
             modifier = Modifier.width(280.dp)
-        )
+        ) {
+            Text(if (dob.isNotBlank()) dob else "Select Date of Birth")
+        }
         Spacer(modifier = Modifier.height(16.dp))
+
         if (errorMessage != null) {
             Text(errorMessage!!, color = MaterialTheme.colors.error)
             Spacer(modifier = Modifier.height(8.dp))
         }
+
         Button(
             onClick = {
                 isLoading = true
@@ -146,7 +272,12 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                     })
             },
             modifier = Modifier.width(280.dp),
-            enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank() && gender.isNotBlank() && dob.isNotBlank()
+            enabled = !isLoading && 
+                     name.isNotBlank() && 
+                     email.isNotBlank() && emailError == null &&
+                     password.isNotBlank() && passwordError == null &&
+                     gender.isNotBlank() && 
+                     dob.isNotBlank()
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
@@ -156,15 +287,6 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             } else {
                 Text("Register")
             }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = {
-                context.startActivity(Intent(context, LoginActivity::class.java))
-            },
-            modifier = Modifier.width(280.dp)
-        ) {
-            Text("Back to Login")
         }
     }
 }
