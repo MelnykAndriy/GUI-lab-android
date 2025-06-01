@@ -42,6 +42,7 @@ import com.msgtrik.msgtrik.models.chat.ChatUser
 import com.msgtrik.msgtrik.models.chat.RecentChat
 import com.msgtrik.msgtrik.models.chat.RecentChatsResponse
 import com.msgtrik.msgtrik.network.RetrofitClient
+import com.msgtrik.msgtrik.ui.components.UserAvatar
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -126,16 +127,11 @@ fun UserListScreen(onUserSelected: (ChatUser) -> Unit) {
                             .clickable { onUserSelected(searchResult!!) },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val initials = searchResult!!.profile.name.split(" ")
-                            .mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("")
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(Color(0xFF7B61FF)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
-                        }
+                        UserAvatar(
+                            userProfile = searchResult!!.profile,
+                            size = 36.dp,
+                            email = searchResult!!.email
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(searchResult!!.profile.name, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -154,17 +150,11 @@ fun UserListScreen(onUserSelected: (ChatUser) -> Unit) {
                                 .clickable { onUserSelected(chat.user) },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val initials = chat.user.profile.name.split(" ")
-                                .mapNotNull { it.firstOrNull()?.toString() }.take(2)
-                                .joinToString("")
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .background(Color(0xFF7B61FF)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
-                            }
+                            UserAvatar(
+                                userProfile = chat.user.profile,
+                                size = 36.dp,
+                                email = chat.user.email
+                            )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(chat.user.profile.name, fontWeight = FontWeight.Medium)
