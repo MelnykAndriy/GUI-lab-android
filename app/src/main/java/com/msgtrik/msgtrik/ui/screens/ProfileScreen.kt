@@ -1,6 +1,7 @@
 package com.msgtrik.msgtrik.ui.screens
 
 import android.app.DatePickerDialog
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.MaterialTheme
@@ -29,16 +31,55 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.msgtrik.msgtrik.R
 import com.msgtrik.msgtrik.models.auth.ProfileUpdateFields
 import com.msgtrik.msgtrik.models.auth.User
+import com.msgtrik.msgtrik.utils.Constants
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import java.util.Calendar
+import java.util.concurrent.TimeUnit
+
+// Singleton object for ImageLoader
+object ImageLoaderSingleton {
+    private var imageLoader: ImageLoader? = null
+
+    fun getInstance(context: Context): ImageLoader {
+        if (imageLoader == null) {
+            val networkLogger = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+
+            val client = OkHttpClient.Builder()
+                .addInterceptor(networkLogger)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build()
+
+            imageLoader = ImageLoader.Builder(context.applicationContext)
+                .okHttpClient(client)
+                .respectCacheHeaders(false)
+                .crossfade(true)
+                .allowHardware(false)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .build()
+        }
+        return imageLoader!!
+    }
+}
 
 @Composable
 fun ProfileScreen(
@@ -47,6 +88,7 @@ fun ProfileScreen(
     onSave: (ProfileUpdateFields) -> Unit
 ) {
     val context = LocalContext.current
+    val imageLoader = remember { ImageLoaderSingleton.getInstance(context) }
 
     var editMode by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf(TextFieldValue(user.profile.name ?: "")) }
@@ -86,7 +128,7 @@ fun ProfileScreen(
         // Avatar
         Box(
             modifier = Modifier
-                .size(96.dp)
+                .size(240.dp)
                 .background(
                     Color(context.getColor(mapTailwindColorToRes(avatarColor))),
                     CircleShape
@@ -97,21 +139,77 @@ fun ProfileScreen(
             contentAlignment = Alignment.Center
         ) {
             if (avatarUrl.isNotBlank()) {
-                Image(
-                    painter = rememberAsyncImagePainter(avatarUrl),
-                    contentDescription = "Avatar",
-                    modifier = Modifier.size(96.dp),
-                    contentScale = ContentScale.Crop
+                val devAvatarUrl = avatarUrl.replace(
+                    "http://localhost:8000",
+                    Constants.BASE_URL
                 )
+
+                val imageLoadError by remember { mutableStateOf<String?>(null) }
+
+                val imageRequest = ImageRequest.Builder(LocalContext.current)
+                    .data(devAvatarUrl)
+                    .size(480, 480)
+                    .crossfade(true)
+                    .build()
+
+                val painter = rememberAsyncImagePainter(
+                    model = imageRequest,
+                    imageLoader = imageLoader
+                )
+
+                when (val state = painter.state) {
+                    is AsyncImagePainter.State.Loading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = Color.White
+                        )
+                    }
+
+                    is AsyncImagePainter.State.Error -> {
+                        Text(
+                            text = user.profile.name?.take(1)?.uppercase() ?: "?",
+                            style = MaterialTheme.typography.h1,
+                            color = Color.White
+                        )
+                    }
+
+                    is AsyncImagePainter.State.Success -> {
+                        Image(
+                            painter = painter,
+                            contentDescription = "Avatar",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+
+                    else -> {
+                        Text(
+                            text = user.profile.name.take(1).uppercase(),
+                            style = MaterialTheme.typography.h1,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                // Show error if any
+                imageLoadError?.let { error ->
+                    Text(
+                        text = "Error: $error",
+                        color = Color.Red,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             } else {
                 Text(
-                    text = user.profile.name.take(1).uppercase(),
-                    style = MaterialTheme.typography.h3,
+                    text = user.profile.name?.take(1)?.uppercase() ?: "?",
+                    style = MaterialTheme.typography.h1,
                     color = Color.White
                 )
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Name
         if (editMode) {
