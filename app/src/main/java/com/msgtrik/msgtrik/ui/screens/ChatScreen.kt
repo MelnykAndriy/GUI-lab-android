@@ -49,6 +49,7 @@ import com.msgtrik.msgtrik.models.chat.NewMessageRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
 import com.msgtrik.msgtrik.ui.components.UserAvatar
 import com.msgtrik.msgtrik.ui.theme.ChatColors
+import com.msgtrik.msgtrik.utils.formatTimestamp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -388,41 +389,5 @@ fun MessageItem(message: Message) {
                 modifier = Modifier.padding(top = 2.dp, start = 4.dp, end = 4.dp)
             )
         }
-    }
-}
-
-private fun formatTimestamp(timestamp: String): String {
-    return try {
-        val instant = java.time.Instant.parse(timestamp)
-        val localDateTime = java.time.LocalDateTime.ofInstant(
-            instant,
-            java.time.ZoneId.systemDefault()
-        )
-        val now = java.time.LocalDateTime.now()
-
-        when {
-            localDateTime.toLocalDate() == now.toLocalDate() -> {
-                // Today - show time only
-                localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
-            }
-
-            localDateTime.toLocalDate() == now.toLocalDate().minusDays(1) -> {
-                // Yesterday
-                "Yesterday ${localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))}"
-            }
-
-            localDateTime.year == now.year -> {
-                // This year
-                localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("MMM d, HH:mm"))
-            }
-
-            else -> {
-                // Different year
-                localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm"))
-            }
-        }
-    } catch (e: Exception) {
-        // Fallback if parsing fails
-        timestamp
     }
 } 
