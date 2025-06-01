@@ -15,8 +15,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
                             BottomNavigationItem(
                                 icon = {
                                     Icon(
-                                        Icons.AutoMirrored.Filled.Chat,
+                                        Icons.Filled.Bolt,
                                         contentDescription = "Chats"
                                     )
                                 },
@@ -128,7 +128,10 @@ class MainActivity : ComponentActivity() {
                             selectedTab == 0 && selectedUser != null -> {
                                 ChatScreen(
                                     selectedUser = selectedUser!!,
-                                    currentUserId = currentUser!!.id
+                                    currentUserId = currentUser!!.id,
+                                    onBackClick = {
+                                        selectedUser = null
+                                    }
                                 )
                             }
 
