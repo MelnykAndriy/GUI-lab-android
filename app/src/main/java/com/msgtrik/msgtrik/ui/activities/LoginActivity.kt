@@ -47,10 +47,11 @@ class LoginActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        preferenceManager = PreferenceManager(this)
+        preferenceManager = PreferenceManager(applicationContext)
 
         // Check if user is already logged in
         if (preferenceManager.getAccessToken() != null) {
+            RetrofitClient.init(this@LoginActivity.applicationContext)
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
@@ -151,6 +152,8 @@ class LoginActivity : ComponentActivity() {
                     // Store tokens
                     preferenceManager.saveAccessToken(authResponse.access)
                     preferenceManager.saveRefreshToken(authResponse.refresh)
+                    // Initialize RetrofitClient with application context
+                    RetrofitClient.init(this@LoginActivity.applicationContext)
                     // Navigate to MainActivity
                     startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                     finish()

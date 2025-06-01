@@ -36,6 +36,7 @@ import com.msgtrik.msgtrik.R
 import com.msgtrik.msgtrik.models.auth.AuthResponse
 import com.msgtrik.msgtrik.models.auth.UserRegisterRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
+import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -145,6 +146,13 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                         ) {
                             isLoading = false
                             if (response.isSuccessful) {
+                                // Store tokens
+                                val authResponse = response.body()!!
+                                val preferenceManager = PreferenceManager(context)
+                                preferenceManager.saveAccessToken(authResponse.access)
+                                preferenceManager.saveRefreshToken(authResponse.refresh)
+                                // Initialize RetrofitClient with application context
+                                RetrofitClient.init(context.applicationContext)
                                 onRegisterSuccess()
                             } else {
                                 errorMessage =

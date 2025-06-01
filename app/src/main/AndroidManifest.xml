@@ -30,6 +30,10 @@
             android:name=".ui.activities.RegisterActivity"
             android:exported="true"
             android:theme="@style/Theme.Msgtrik" />
+        <activity
+            android:name=".ui.activities.ProfileActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Msgtrik" />
     </application>
 
 </manifest>

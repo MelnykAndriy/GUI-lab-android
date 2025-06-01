@@ -4,4 +4,10 @@
     <color name="white">#FFFFFFFF</color>
     <color name="purple_web">#8B7CFF</color>
     <color name="purple_accent">#6A5CD6</color>
+    <color name="bg_purple_500">#8B5CF6</color>
+    <color name="bg_blue_500">#3B82F6</color>
+    <color name="bg_green_500">#22C55E</color>
+    <color name="bg_yellow_500">#EAB308</color>
+    <color name="bg_pink_500">#EC4899</color>
+    <color name="bg_indigo_500">#6366F1</color>
 </resources>
