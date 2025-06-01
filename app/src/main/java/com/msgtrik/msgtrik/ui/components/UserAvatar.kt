@@ -64,8 +64,8 @@ object ImageLoaderSingleton {
 @Composable
 fun UserAvatar(
     userProfile: UserProfile,
-    size: Dp = 48.dp,
     modifier: Modifier = Modifier,
+    size: Dp = 48.dp,
     email: String? = null
 ) {
     val context = LocalContext.current
@@ -142,7 +142,7 @@ fun UserAvatar(
                 imageLoader = imageLoader
             )
 
-            when (val state = painter.state) {
+            when (painter.state) {
                 is AsyncImagePainter.State.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.size(size / 2),
