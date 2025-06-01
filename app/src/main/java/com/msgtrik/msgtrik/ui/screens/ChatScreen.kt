@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,6 +29,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,7 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.msgtrik.msgtrik.models.Message
@@ -67,13 +69,13 @@ fun ChatScreen(
     var currentPage by remember { mutableStateOf(1) }
     var hasMoreMessages by remember { mutableStateOf(true) }
     var isLoadingMore by remember { mutableStateOf(false) }
-    
+
     // Polling interval in milliseconds (3 seconds)
     val pollingInterval = 3000L
-    
+
     // Remember the list state to maintain scroll position
     val listState = rememberLazyListState()
-    
+
     // Remember coroutine scope for animations
     val coroutineScope = rememberCoroutineScope()
 
@@ -82,7 +84,7 @@ fun ChatScreen(
         if (loadingMore) {
             if (!hasMoreMessages || isLoading) return
         }
-        
+
         if (loadingMore) {
             isLoadingMore = true
         } else if (messages.isEmpty()) {
@@ -104,23 +106,24 @@ fun ChatScreen(
                                 timestamp = it.timestamp
                             )
                         }
-                        
+
                         // Update pagination state
                         hasMoreMessages =
                             newMessages.isNotEmpty() && page < response.body()!!.pagination.pages
-                        
+
                         // For polling (page 1), check if we have new messages
                         if (page == 1 && !loadingMore) {
-                            val existingMessageIds = messages.map { "${it.text}${it.timestamp}" }.toSet()
-                            val newMessagesList = newMessages.filterNot { 
-                                "${it.text}${it.timestamp}" in existingMessageIds 
+                            val existingMessageIds =
+                                messages.map { "${it.text}${it.timestamp}" }.toSet()
+                            val newMessagesList = newMessages.filterNot {
+                                "${it.text}${it.timestamp}" in existingMessageIds
                             }
-                            
+
                             if (newMessagesList.isNotEmpty()) {
                                 // Only add new messages to the existing list
                                 messages = (newMessagesList + messages)
                                     .sortedByDescending { it.timestamp }
-                                
+
                                 // Auto-scroll to bottom if we're already at the bottom
                                 if (listState.firstVisibleItemIndex == 0) {
                                     coroutineScope.launch {
@@ -251,14 +254,14 @@ fun ChatScreen(
                                 }
                             }
                         }
-                        
+
                         items(
                             items = messages,
                             key = { message: Message -> "${message.text}${message.timestamp}" }
                         ) { message ->
                             MessageItem(message = message)
                         }
-                        
+
                         // Load more when reaching the top
                         if (hasMoreMessages) {
                             item {
@@ -291,7 +294,6 @@ fun ChatScreen(
                     modifier = Modifier.weight(1f),
                     maxLines = 3
                 )
-                Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
                         if (messageText.isNotBlank()) {
@@ -307,7 +309,6 @@ fun ChatScreen(
                                 ) {
                                     if (response.isSuccessful && response.body() != null) {
                                         val newMessage = response.body()
-                                        // Add the new message to the beginning of the list (since we're using reverseLayout)
                                         messages = listOf(
                                             Message(
                                                 text = newMessage!!.content,
@@ -316,10 +317,8 @@ fun ChatScreen(
                                             )
                                         ) + messages
 
-                                        // Clear the input field
                                         messageText = ""
 
-                                        // Scroll to the bottom (which is actually the top in reverseLayout)
                                         coroutineScope.launch {
                                             listState.animateScrollToItem(0)
                                         }
@@ -327,14 +326,21 @@ fun ChatScreen(
                                 }
 
                                 override fun onFailure(call: Call<ChatMessage>, t: Throwable) {
-                                    // Show error to user
                                     error = "Failed to send message: ${t.message}"
                                 }
                             })
                         }
-                    }
+                    },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .height(56.dp) // Standard height for OutlinedTextField
+                        .aspectRatio(1f) // Make it square
                 ) {
-                    Text("Send")
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send message",
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
         }
@@ -393,20 +399,23 @@ private fun formatTimestamp(timestamp: String): String {
             java.time.ZoneId.systemDefault()
         )
         val now = java.time.LocalDateTime.now()
-        
+
         when {
             localDateTime.toLocalDate() == now.toLocalDate() -> {
                 // Today - show time only
                 localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
             }
+
             localDateTime.toLocalDate() == now.toLocalDate().minusDays(1) -> {
                 // Yesterday
                 "Yesterday ${localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))}"
             }
+
             localDateTime.year == now.year -> {
                 // This year
                 localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("MMM d, HH:mm"))
             }
+
             else -> {
                 // Different year
                 localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm"))
