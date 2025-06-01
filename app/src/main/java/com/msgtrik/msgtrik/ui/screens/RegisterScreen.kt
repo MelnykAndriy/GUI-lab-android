@@ -3,6 +3,7 @@ package com.msgtrik.msgtrik.ui.screens
 import android.app.DatePickerDialog
 import android.content.Intent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +22,6 @@ import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -63,6 +63,9 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
     var passwordError by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
+    // Standard height for all input fields and buttons
+    val standardHeight = 56.dp
+
     // Email validation pattern
     val emailPattern = Pattern.compile(
         "[a-zA-Z0-9+._%\\-]{1,256}" +
@@ -89,13 +92,10 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Back button and title row
         Row(
             modifier = Modifier
@@ -137,14 +137,16 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             value = name,
             onValueChange = { name = it },
             label = { Text("Name") },
-            modifier = Modifier.width(280.dp)
+            modifier = Modifier
+                .width(280.dp)
+                .height(standardHeight)
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         // Email field with validation
         OutlinedTextField(
             value = email,
-            onValueChange = { 
+            onValueChange = {
                 email = it
                 emailError = if (it.isNotEmpty() && !emailPattern.matcher(it).matches()) {
                     "Please enter a valid email address"
@@ -152,7 +154,9 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             },
             label = { Text("Email") },
             isError = emailError != null,
-            modifier = Modifier.width(280.dp)
+            modifier = Modifier
+                .width(280.dp)
+                .height(standardHeight)
         )
         if (emailError != null) {
             Text(
@@ -167,14 +171,16 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
         // Password field with validation
         OutlinedTextField(
             value = password,
-            onValueChange = { 
+            onValueChange = {
                 password = it
                 passwordError = validatePassword(it)
             },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
             isError = passwordError != null,
-            modifier = Modifier.width(280.dp)
+            modifier = Modifier
+                .width(280.dp)
+                .height(standardHeight)
         )
         if (passwordError != null) {
             Text(
@@ -188,28 +194,42 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
 
         // Gender picker dropdown
         Box {
-            OutlinedButton(
-                onClick = { genderDropdownExpanded = true },
-                modifier = Modifier.width(280.dp)
-            ) {
-                Text(if (gender.isNotBlank()) gender.replaceFirstChar { it.uppercase() } else "Select Gender")
-            }
+            OutlinedTextField(
+                value = gender,
+                onValueChange = { },
+                label = { Text("Gender") },
+                readOnly = true,
+                modifier = Modifier
+                    .width(280.dp)
+                    .height(standardHeight)
+                    .clickable { genderDropdownExpanded = true },
+                placeholder = { Text("Select Gender", color = MaterialTheme.colors.primary) }
+            )
             DropdownMenu(
                 expanded = genderDropdownExpanded,
                 onDismissRequest = { genderDropdownExpanded = false }
             ) {
-                DropdownMenuItem(onClick = {
-                    gender = "male"
-                    genderDropdownExpanded = false
-                }) { Text("Male") }
-                DropdownMenuItem(onClick = {
-                    gender = "female"
-                    genderDropdownExpanded = false
-                }) { Text("Female") }
-                DropdownMenuItem(onClick = {
-                    gender = "other"
-                    genderDropdownExpanded = false
-                }) { Text("Other") }
+                DropdownMenuItem(
+                    onClick = {
+                        gender = "male"
+                        genderDropdownExpanded = false
+                    },
+                    modifier = Modifier.height(standardHeight)
+                ) { Text("Male") }
+                DropdownMenuItem(
+                    onClick = {
+                        gender = "female"
+                        genderDropdownExpanded = false
+                    },
+                    modifier = Modifier.height(standardHeight)
+                ) { Text("Female") }
+                DropdownMenuItem(
+                    onClick = {
+                        gender = "other"
+                        genderDropdownExpanded = false
+                    },
+                    modifier = Modifier.height(standardHeight)
+                ) { Text("Other") }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -220,16 +240,21 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
         val month = dob.drop(5).take(2).toIntOrNull()?.minus(1) ?: calendar.get(Calendar.MONTH)
         val day = dob.takeLast(2).toIntOrNull() ?: calendar.get(Calendar.DAY_OF_MONTH)
 
-        OutlinedButton(
-            onClick = {
-                DatePickerDialog(context, { _, y, m, d ->
-                    dob = String.format("%04d-%02d-%02d", y, m + 1, d)
-                }, year, month, day).show()
-            },
-            modifier = Modifier.width(280.dp)
-        ) {
-            Text(if (dob.isNotBlank()) dob else "Select Date of Birth")
-        }
+        OutlinedTextField(
+            value = dob,
+            onValueChange = { },
+            label = { Text("Date of Birth") },
+            readOnly = true,
+            modifier = Modifier
+                .width(280.dp)
+                .height(standardHeight)
+                .clickable {
+                    DatePickerDialog(context, { _, y, m, d ->
+                        dob = String.format("%04d-%02d-%02d", y, m + 1, d)
+                    }, year, month, day).show()
+                },
+            placeholder = { Text("Select Date of Birth", color = MaterialTheme.colors.primary) }
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         if (errorMessage != null) {
@@ -271,18 +296,19 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                         }
                     })
             },
-            modifier = Modifier.width(280.dp),
-            enabled = !isLoading && 
-                     name.isNotBlank() && 
-                     email.isNotBlank() && emailError == null &&
-                     password.isNotBlank() && passwordError == null &&
-                     gender.isNotBlank() && 
-                     dob.isNotBlank()
+            modifier = Modifier
+                .width(280.dp),
+            enabled = !isLoading &&
+                    name.isNotBlank() &&
+                    email.isNotBlank() && emailError == null &&
+                    password.isNotBlank() && passwordError == null &&
+                    gender.isNotBlank() &&
+                    dob.isNotBlank()
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     color = MaterialTheme.colors.onPrimary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             } else {
                 Text("Register")
