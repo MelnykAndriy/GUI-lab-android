@@ -1,9 +1,6 @@
 package com.msgtrik.msgtrik.ui.screens
 
 import android.app.DatePickerDialog
-import android.content.Context
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,10 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.MaterialTheme
@@ -31,55 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import com.msgtrik.msgtrik.R
 import com.msgtrik.msgtrik.models.auth.ProfileUpdateFields
 import com.msgtrik.msgtrik.models.auth.User
-import com.msgtrik.msgtrik.utils.Constants
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
+import com.msgtrik.msgtrik.ui.components.UserAvatar
 import java.util.Calendar
-import java.util.concurrent.TimeUnit
-
-// Singleton object for ImageLoader
-object ImageLoaderSingleton {
-    private var imageLoader: ImageLoader? = null
-
-    fun getInstance(context: Context): ImageLoader {
-        if (imageLoader == null) {
-            val networkLogger = HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            }
-
-            val client = OkHttpClient.Builder()
-                .addInterceptor(networkLogger)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build()
-
-            imageLoader = ImageLoader.Builder(context.applicationContext)
-                .okHttpClient(client)
-                .respectCacheHeaders(false)
-                .crossfade(true)
-                .allowHardware(false)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .build()
-        }
-        return imageLoader!!
-    }
-}
 
 @Composable
 fun ProfileScreen(
@@ -87,29 +39,14 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onSave: (ProfileUpdateFields) -> Unit
 ) {
+
     val context = LocalContext.current
-    val imageLoader = remember { ImageLoaderSingleton.getInstance(context) }
 
     var editMode by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf(TextFieldValue(user.profile.name ?: "")) }
     var gender by remember { mutableStateOf(user.profile.gender ?: "") }
     var dob by remember { mutableStateOf(user.profile.dob ?: "") }
-    val avatarUrl by remember { mutableStateOf(user.profile.avatarUrl ?: "") }
-    val avatarColor by remember {
-        mutableStateOf(user.profile.avatarColor ?: "bg-purple-500")
-    }
-
-    fun mapTailwindColorToRes(colorClass: String): Int {
-        return when (colorClass) {
-            "bg-purple-500" -> R.color.bg_purple_500
-            "bg-blue-500" -> R.color.bg_blue_500
-            "bg-green-500" -> R.color.bg_green_500
-            "bg-yellow-500" -> R.color.bg_yellow_500
-            "bg-pink-500" -> R.color.bg_pink_500
-            "bg-indigo-500" -> R.color.bg_indigo_500
-            else -> R.color.bg_purple_500 // default fallback
-        }
-    }
+    var genderDropdownExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -124,94 +61,18 @@ fun ProfileScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-
         // Avatar
-        Box(
-            modifier = Modifier
-                .size(240.dp)
-                .background(
-                    Color(context.getColor(mapTailwindColorToRes(avatarColor))),
-                    CircleShape
-                )
-                .clickable(enabled = editMode) {
-                    // TODO: Implement avatar color/image picker
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            if (avatarUrl.isNotBlank()) {
-                val devAvatarUrl = avatarUrl.replace(
-                    "http://localhost:8000",
-                    Constants.BASE_URL
-                )
-
-                val imageLoadError by remember { mutableStateOf<String?>(null) }
-
-                val imageRequest = ImageRequest.Builder(LocalContext.current)
-                    .data(devAvatarUrl)
-                    .size(480, 480)
-                    .crossfade(true)
-                    .build()
-
-                val painter = rememberAsyncImagePainter(
-                    model = imageRequest,
-                    imageLoader = imageLoader
-                )
-
-                when (val state = painter.state) {
-                    is AsyncImagePainter.State.Loading -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(32.dp),
-                            color = Color.White
-                        )
-                    }
-
-                    is AsyncImagePainter.State.Error -> {
-                        Text(
-                            text = user.profile.name?.take(1)?.uppercase() ?: "?",
-                            style = MaterialTheme.typography.h1,
-                            color = Color.White
-                        )
-                    }
-
-                    is AsyncImagePainter.State.Success -> {
-                        Image(
-                            painter = painter,
-                            contentDescription = "Avatar",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    else -> {
-                        Text(
-                            text = user.profile.name.take(1).uppercase(),
-                            style = MaterialTheme.typography.h1,
-                            color = Color.White
-                        )
-                    }
-                }
-
-                // Show error if any
-                imageLoadError?.let { error ->
-                    Text(
-                        text = "Error: $error",
-                        color = Color.Red,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            } else {
-                Text(
-                    text = user.profile.name?.take(1)?.uppercase() ?: "?",
-                    style = MaterialTheme.typography.h1,
-                    color = Color.White
-                )
+        UserAvatar(
+            userProfile = user.profile,
+            size = 240.dp,
+            email = user.email,
+            modifier = Modifier.clickable(enabled = editMode) {
+                // TODO: Implement avatar color/image picker
             }
-        }
-        Spacer(modifier = Modifier.height(32.dp))
+        )
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Name
+        // Name field
         if (editMode) {
             OutlinedTextField(
                 value = name,
@@ -220,27 +81,36 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         } else {
-            Text(text = "Name: ${user.profile.name}", style = MaterialTheme.typography.body1)
+            Text(
+                text = "Name: ${user.profile.name ?: "N/A"}",
+                style = MaterialTheme.typography.body1
+            )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Gender
+        // Gender field
         if (editMode) {
-            var expanded by remember { mutableStateOf(false) }
             Box {
-                OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text(if (gender.isNotBlank()) gender.replaceFirstChar { it.uppercase() } else "Select Gender")
-                }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(onClick = {
-                        gender = "male"; expanded = false
-                    }) { Text("Male") }
-                    DropdownMenuItem(onClick = {
-                        gender = "female"; expanded = false
-                    }) { Text("Female") }
-                    DropdownMenuItem(onClick = {
-                        gender = "other"; expanded = false
-                    }) { Text("Other") }
+                OutlinedTextField(
+                    value = gender,
+                    onValueChange = { },
+                    label = { Text("Gender") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { genderDropdownExpanded = true }
+                )
+                DropdownMenu(
+                    expanded = genderDropdownExpanded,
+                    onDismissRequest = { genderDropdownExpanded = false }
+                ) {
+                    listOf("male", "female", "other").forEach { option ->
+                        DropdownMenuItem(onClick = {
+                            gender = option
+                            genderDropdownExpanded = false
+                        }) {
+                            Text(option)
+                        }
+                    }
                 }
             }
         } else {
@@ -249,9 +119,9 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.body1
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Date of Birth
+        // Date of Birth field
         if (editMode) {
             val calendar = Calendar.getInstance()
             val year = dob.take(4).toIntOrNull() ?: calendar.get(Calendar.YEAR)
@@ -272,7 +142,7 @@ fun ProfileScreen(
         }
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Edit/Save/Cancel buttons
+        // Edit/Save buttons
         if (editMode) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -283,24 +153,33 @@ fun ProfileScreen(
                         ProfileUpdateFields(
                             name = name.text,
                             gender = gender,
-                            dob = dob,
-                            avatarUrl = avatarUrl.takeIf { it.isNotBlank() },
-                            avatarColor = avatarColor
+                            dob = dob
                         )
                     )
                     editMode = false
-                }) { Text("Save") }
-                Button(onClick = { editMode = false }) { Text("Cancel") }
+                }) {
+                    Text("Save")
+                }
+                Button(onClick = { editMode = false }) {
+                    Text("Cancel")
+                }
             }
         } else {
             Button(
                 onClick = { editMode = true },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Edit Profile") }
+            ) {
+                Text("Edit Profile")
+            }
         }
         Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
-            Text(text = "Logout")
+
+        // Logout button
+        OutlinedButton(
+            onClick = onLogout,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Logout")
         }
     }
 } 
