@@ -30,6 +30,6 @@ interface ChatService {
     @GET("/api/users/search/{email}/")
     fun getUserByEmail(@Path("email") email: String): Call<ChatUser>
 
-    @POST("/api/chats/messages/{userId}/read/")
+    @POST("/api/chats/messages/{userId}/read")
     fun markMessagesAsRead(@Path("userId") userId: Int): Call<MarkReadResponse>
 } 

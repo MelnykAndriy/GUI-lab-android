@@ -45,6 +45,7 @@ import com.msgtrik.msgtrik.models.Message
 import com.msgtrik.msgtrik.models.chat.ChatMessage
 import com.msgtrik.msgtrik.models.chat.ChatMessagesResponse
 import com.msgtrik.msgtrik.models.chat.ChatUser
+import com.msgtrik.msgtrik.models.chat.MarkReadResponse
 import com.msgtrik.msgtrik.models.chat.NewMessageRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
 import com.msgtrik.msgtrik.ui.components.UserAvatar
@@ -80,6 +81,23 @@ fun ChatScreen(
     // Remember coroutine scope for animations
     val coroutineScope = rememberCoroutineScope()
 
+    // Function to mark messages as read
+    fun markMessagesAsRead() {
+        RetrofitClient.chatService.markMessagesAsRead(selectedUser.id)
+            .enqueue(object : Callback<MarkReadResponse> {
+                override fun onResponse(
+                    call: Call<MarkReadResponse>,
+                    response: Response<MarkReadResponse>
+                ) {
+                    // No need to do anything on success
+                }
+
+                override fun onFailure(call: Call<MarkReadResponse>, t: Throwable) {
+                    // Silently fail - we'll try again next time
+                }
+            })
+    }
+
     // Function to load messages
     fun loadMessages(page: Int = 1, loadingMore: Boolean = false) {
         if (loadingMore) {
@@ -104,7 +122,8 @@ fun ChatScreen(
                             Message(
                                 text = it.content,
                                 isSentByUser = it.senderId == currentUserId,
-                                timestamp = it.timestamp
+                                timestamp = it.timestamp,
+                                read = it.read ?: false
                             )
                         }
 
@@ -125,12 +144,8 @@ fun ChatScreen(
                                 messages = (newMessagesList + messages)
                                     .sortedByDescending { it.timestamp }
 
-                                // Auto-scroll to bottom if we're already at the bottom
-                                if (listState.firstVisibleItemIndex == 0) {
-                                    coroutineScope.launch {
-                                        listState.animateScrollToItem(0)
-                                    }
-                                }
+                                // Mark messages as read when we receive new ones
+                                markMessagesAsRead()
                             }
                         } else {
                             // For pagination, merge with existing messages
@@ -153,9 +168,10 @@ fun ChatScreen(
             })
     }
 
-    // Load initial messages
+    // Load initial messages and mark them as read
     LaunchedEffect(selectedUser.id) {
         loadMessages()
+        markMessagesAsRead()
     }
 
     // Set up polling with error handling and backoff
@@ -382,12 +398,24 @@ fun MessageItem(message: Message) {
                     color = MaterialTheme.colors.onSurface
                 )
             }
-            Text(
-                text = formatTimestamp(message.timestamp),
-                style = MaterialTheme.typography.caption,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(top = 2.dp, start = 4.dp, end = 4.dp)
-            )
+            Row(
+                modifier = Modifier.padding(top = 2.dp, start = 4.dp, end = 4.dp),
+                horizontalArrangement = if (message.isSentByUser) Arrangement.End else Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = formatTimestamp(message.timestamp),
+                    style = MaterialTheme.typography.caption,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                )
+                if (message.isSentByUser) {
+                    Text(
+                        text = " • ${if (message.read) "Read" else "Sent"}",
+                        style = MaterialTheme.typography.caption,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
         }
     }
 } 
