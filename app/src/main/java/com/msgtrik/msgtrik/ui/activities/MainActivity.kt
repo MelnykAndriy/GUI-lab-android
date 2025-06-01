@@ -27,7 +27,7 @@ import com.msgtrik.msgtrik.models.auth.User
 import com.msgtrik.msgtrik.models.auth.UserProfileUpdateRequest
 import com.msgtrik.msgtrik.models.chat.ChatUser
 import com.msgtrik.msgtrik.network.RetrofitClient
-import com.msgtrik.msgtrik.ui.screens.MainScreen
+import com.msgtrik.msgtrik.ui.screens.UserListScreen
 import com.msgtrik.msgtrik.ui.screens.ProfileScreen
 import com.msgtrik.msgtrik.ui.screens.ChatScreen
 import com.msgtrik.msgtrik.utils.PreferenceManager
@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
                                 Text(error!!)
                             }
                             selectedTab == 0 && selectedUser == null -> {
-                                MainScreen(onUserSelected = { user ->
+                                UserListScreen(onUserSelected = { user ->
                                     selectedUser = user
                                 })
                             }

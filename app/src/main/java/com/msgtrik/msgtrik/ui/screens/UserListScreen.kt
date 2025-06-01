@@ -47,7 +47,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
-fun MainScreen(onUserSelected: (ChatUser) -> Unit) {
+fun UserListScreen(onUserSelected: (ChatUser) -> Unit) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var searchResult by remember { mutableStateOf<ChatUser?>(null) }
