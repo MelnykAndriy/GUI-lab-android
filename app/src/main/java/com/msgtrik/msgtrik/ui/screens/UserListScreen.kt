@@ -24,6 +24,7 @@ import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +41,7 @@ import com.msgtrik.msgtrik.models.chat.ChatUser
 import com.msgtrik.msgtrik.models.chat.RecentChat
 import com.msgtrik.msgtrik.models.chat.RecentChatsResponse
 import com.msgtrik.msgtrik.network.RetrofitClient
+import com.msgtrik.msgtrik.ui.components.StartChat
 import com.msgtrik.msgtrik.ui.components.UserAvatar
 import com.msgtrik.msgtrik.ui.components.UserListItem
 import com.msgtrik.msgtrik.utils.formatTimestamp
@@ -58,6 +60,7 @@ fun UserListScreen(
     var searchResults by remember { mutableStateOf<List<ChatUser>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
+    var showStartChat by remember { mutableStateOf(false) }
 
     // Polling interval in milliseconds (10 seconds for recent chats)
     val pollingInterval = 10000L
@@ -155,12 +158,32 @@ fun UserListScreen(
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.weight(1f))
-                    OutlinedButton(onClick = { /* TODO: New chat */ }) {
-                        Text("+ New")
+                    OutlinedButton(
+                        onClick = { showStartChat = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "New Chat",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("New")
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // New Chat Section
+                if (showStartChat) {
+                    StartChat(
+                        onStartChat = { user ->
+                            onUserSelected(user)
+                            showStartChat = false
+                        },
+                        onDismiss = { showStartChat = false }
+                    )
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                }
 
                 // Search field
                 OutlinedTextField(
