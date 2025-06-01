@@ -38,33 +38,37 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.msgtrik.msgtrik.models.auth.User
+import com.msgtrik.msgtrik.models.chat.ChatUser
 import com.msgtrik.msgtrik.models.chat.RecentChat
 import com.msgtrik.msgtrik.models.chat.RecentChatsResponse
 import com.msgtrik.msgtrik.network.RetrofitClient
-import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
-fun MainScreen() {
+fun MainScreen(onUserSelected: (ChatUser) -> Unit) {
     val context = LocalContext.current
-    val preferenceManager = remember { PreferenceManager(context) }
     var searchQuery by remember { mutableStateOf("") }
-    var searchResult by remember { mutableStateOf<User?>(null) }
+    var searchResult by remember { mutableStateOf<ChatUser?>(null) }
     var recentChats by remember { mutableStateOf<List<RecentChat>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(Color.White)) {
         // Header
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Placeholder for logo
             Box(
-                modifier = Modifier.size(40.dp).background(Color(0xFF7B61FF)),
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color(0xFF7B61FF)),
                 contentAlignment = Alignment.Center
             ) {
                 Text("⚡", fontSize = 24.sp, color = Color.White)
@@ -73,7 +77,8 @@ fun MainScreen() {
             Text("Msgtrik", fontWeight = FontWeight.Bold, fontSize = 22.sp)
             Spacer(modifier = Modifier.weight(1f))
             TextButton(onClick = {
-                val intent = Intent(context, com.msgtrik.msgtrik.ui.activities.ProfileActivity::class.java)
+                val intent =
+                    Intent(context, com.msgtrik.msgtrik.ui.activities.ProfileActivity::class.java)
                 context.startActivity(intent)
             }) {
                 Text("My Account")
@@ -111,19 +116,27 @@ fun MainScreen() {
                         if (searchQuery.isNotBlank()) {
                             IconButton(onClick = {
                                 isLoading = true
-                                RetrofitClient.authService.getUserByEmail(searchQuery)
-                                    .enqueue(object : Callback<User> {
-                                        override fun onResponse(call: Call<User>, response: Response<User>) {
+                                RetrofitClient.chatService.getUserByEmail(searchQuery)
+                                    .enqueue(object : Callback<ChatUser> {
+                                        override fun onResponse(
+                                            call: Call<ChatUser>,
+                                            response: Response<ChatUser>
+                                        ) {
                                             isLoading = false
-                                            searchResult = if (response.isSuccessful) response.body() else null
+                                            searchResult =
+                                                if (response.isSuccessful) response.body() else null
                                         }
-                                        override fun onFailure(call: Call<User>, t: Throwable) {
+
+                                        override fun onFailure(call: Call<ChatUser>, t: Throwable) {
                                             isLoading = false
                                             searchResult = null
                                         }
                                     })
                             }) {
-                                Icon(painterResource(android.R.drawable.ic_menu_search), contentDescription = "Search")
+                                Icon(
+                                    painterResource(android.R.drawable.ic_menu_search),
+                                    contentDescription = "Search"
+                                )
                             }
                         }
                     }
@@ -136,12 +149,15 @@ fun MainScreen() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
-                            .clickable { /* TODO: Start chat with user */ },
+                            .clickable { onUserSelected(searchResult!!) },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val initials = searchResult!!.profile.name.split(" ").mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("")
+                        val initials = searchResult!!.profile.name.split(" ")
+                            .mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("")
                         Box(
-                            modifier = Modifier.size(36.dp).background(Color(0xFF7B61FF)),
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color(0xFF7B61FF)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
@@ -161,12 +177,16 @@ fun MainScreen() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
-                                .clickable { /* TODO: Open chat */ },
+                                .clickable { onUserSelected(chat.user) },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val initials = chat.user.profile.name.split(" ").mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("")
+                            val initials = chat.user.profile.name.split(" ")
+                                .mapNotNull { it.firstOrNull()?.toString() }.take(2)
+                                .joinToString("")
                             Box(
-                                modifier = Modifier.size(36.dp).background(Color(0xFF7B61FF)),
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(Color(0xFF7B61FF)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
@@ -174,10 +194,19 @@ fun MainScreen() {
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(chat.user.profile.name, fontWeight = FontWeight.Medium)
-                                Text(chat.lastMessage?.content ?: "", color = Color.Gray, fontSize = 12.sp, maxLines = 1)
+                                Text(
+                                    chat.lastMessage?.content ?: "",
+                                    color = Color.Gray,
+                                    fontSize = 12.sp,
+                                    maxLines = 1
+                                )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(chat.lastMessage?.timestamp?.take(10)?.replace("-", "/") ?: "", color = Color.Gray, fontSize = 12.sp)
+                            Text(
+                                chat.lastMessage?.timestamp?.take(10)?.replace("-", "/") ?: "",
+                                color = Color.Gray,
+                                fontSize = 12.sp
+                            )
                         }
                         Divider()
                     }
@@ -189,11 +218,15 @@ fun MainScreen() {
     // Load recent chats on screen launch
     LaunchedEffect(Unit) {
         RetrofitClient.chatService.getRecentChats().enqueue(object : Callback<RecentChatsResponse> {
-            override fun onResponse(call: Call<RecentChatsResponse>, response: Response<RecentChatsResponse>) {
+            override fun onResponse(
+                call: Call<RecentChatsResponse>,
+                response: Response<RecentChatsResponse>
+            ) {
                 if (response.isSuccessful && response.body() != null) {
                     recentChats = response.body()!!.chats
                 }
             }
+
             override fun onFailure(call: Call<RecentChatsResponse>, t: Throwable) {
                 // Handle error
             }

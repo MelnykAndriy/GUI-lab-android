@@ -35,11 +35,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.msgtrik.msgtrik.R
 import com.msgtrik.msgtrik.models.auth.ProfileUpdateFields
 import com.msgtrik.msgtrik.models.auth.User
 import java.util.Calendar
-import androidx.core.graphics.toColorInt
-import com.msgtrik.msgtrik.R
 
 @Composable
 fun ProfileScreen(
@@ -83,12 +82,15 @@ fun ProfileScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        
+
         // Avatar
         Box(
             modifier = Modifier
                 .size(96.dp)
-                .background(Color(context.getColor(mapTailwindColorToRes(avatarColor))), CircleShape)
+                .background(
+                    Color(context.getColor(mapTailwindColorToRes(avatarColor))),
+                    CircleShape
+                )
                 .clickable(enabled = editMode) {
                     // TODO: Implement avatar color/image picker
                 },

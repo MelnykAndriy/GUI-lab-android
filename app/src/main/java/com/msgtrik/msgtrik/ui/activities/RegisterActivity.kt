@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
@@ -97,14 +98,14 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             value = name,
             onValueChange = { name = it },
             label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(280.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(280.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -112,21 +113,21 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             onValueChange = { password = it },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(280.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = gender,
             onValueChange = { gender = it },
             label = { Text("Gender (male/female/other)") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(280.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = dob,
             onValueChange = { dob = it },
             label = { Text("Date of Birth (YYYY-MM-DD)") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(280.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         if (errorMessage != null) {
@@ -167,7 +168,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                         }
                     })
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.width(280.dp),
             enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank() && gender.isNotBlank() && dob.isNotBlank()
         ) {
             if (isLoading) {
@@ -184,7 +185,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             onClick = {
                 context.startActivity(Intent(context, LoginActivity::class.java))
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(280.dp)
         ) {
             Text("Back to Login")
         }
