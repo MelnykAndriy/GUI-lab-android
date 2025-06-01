@@ -57,34 +57,8 @@ fun UserListScreen(onUserSelected: (ChatUser) -> Unit) {
     Column(modifier = Modifier
         .fillMaxSize()
         .background(Color.White)) {
-        // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Placeholder for logo
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(Color(0xFF7B61FF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("⚡", fontSize = 24.sp, color = Color.White)
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Msgtrik", fontWeight = FontWeight.Bold, fontSize = 22.sp)
-            Spacer(modifier = Modifier.weight(1f))
-            TextButton(onClick = {
-                val intent =
-                    Intent(context, com.msgtrik.msgtrik.ui.activities.ProfileActivity::class.java)
-                context.startActivity(intent)
-            }) {
-                Text("My Account")
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-        }
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Chats Card
         Card(
