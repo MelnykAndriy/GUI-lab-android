@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -193,31 +194,57 @@ fun ChatScreen(
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         // Header
-        TopAppBar(
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    UserAvatar(
-                        userProfile = selectedUser.profile,
-                        size = 32.dp,
-                        email = selectedUser.email
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(selectedUser.profile.name)
-                }
-            },
-            navigationIcon = {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to user list"
-                    )
-                }
-            },
-            backgroundColor = MaterialTheme.colors.surface,
-            elevation = 4.dp
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+                .background(MaterialTheme.colors.surface)
+                .padding(horizontal = 4.dp)
+        ) {
+            // Back button
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 8.dp)
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back to user list"
+                )
+            }
+
+            // Centered user info
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = selectedUser.profile.name,
+                    style = MaterialTheme.typography.subtitle1,
+                    maxLines = 1
+                )
+                Text(
+                    text = selectedUser.email,
+                    style = MaterialTheme.typography.caption,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                    maxLines = 1
+                )
+            }
+
+            // Avatar in top right
+            UserAvatar(
+                userProfile = selectedUser.profile,
+                size = 40.dp,
+                email = selectedUser.email,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 8.dp, end = 8.dp)
+            )
+        }
+
+        // Add divider
+        Divider()
 
         // Messages
         Box(modifier = Modifier.weight(1f)) {
