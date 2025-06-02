@@ -1,7 +1,6 @@
 package com.msgtrik.msgtrik.network
 
 import android.content.Context
-import androidx.compose.ui.platform.LocalContext
 import com.msgtrik.msgtrik.models.auth.AuthResponse
 import com.msgtrik.msgtrik.models.auth.TokenRefreshRequest
 import com.msgtrik.msgtrik.network.services.AuthService
@@ -23,18 +22,13 @@ object RetrofitClient {
     }
 
     private val authInterceptor = Interceptor { chain ->
-        println("Interceptor: Received request ${chain.request().url}")
         val originalRequest: Request = chain.request()
         val builder = originalRequest.newBuilder()
         val token = appContext?.let { PreferenceManager(it).getAccessToken() }
         if (!token.isNullOrBlank()) {
-            println("Interceptor: Adding auth token header")
             builder.addHeader("Authorization", "Bearer $token")
-        } else {
-            println("Interceptor: No auth token available") 
         }
         val response = chain.proceed(builder.build())
-        println("Interceptor: Response code ${response.code}")
 
         // If unauthorized, try to refresh token and retry once
         if (response.code == 401 && appContext != null) {

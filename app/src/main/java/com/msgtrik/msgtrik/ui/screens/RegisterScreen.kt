@@ -49,6 +49,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.Calendar
 import java.util.regex.Pattern
+import com.msgtrik.msgtrik.ui.components.GenderDropdown
 
 @Composable
 fun RegisterScreen(onRegisterSuccess: () -> Unit) {
@@ -194,45 +195,14 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Gender picker dropdown
-        Box {
-            OutlinedTextField(
-                value = gender,
-                onValueChange = { },
-                label = { Text("Gender") },
-                readOnly = true,
-                modifier = Modifier
-                    .width(280.dp)
-                    .height(standardHeight)
-                    .clickable { genderDropdownExpanded = true },
-                placeholder = { Text("Select Gender", color = MaterialTheme.colors.primary) }
-            )
-            DropdownMenu(
-                expanded = genderDropdownExpanded,
-                onDismissRequest = { genderDropdownExpanded = false }
-            ) {
-                DropdownMenuItem(
-                    onClick = {
-                        gender = "male"
-                        genderDropdownExpanded = false
-                    },
-                    modifier = Modifier.height(standardHeight)
-                ) { Text("Male") }
-                DropdownMenuItem(
-                    onClick = {
-                        gender = "female"
-                        genderDropdownExpanded = false
-                    },
-                    modifier = Modifier.height(standardHeight)
-                ) { Text("Female") }
-                DropdownMenuItem(
-                    onClick = {
-                        gender = "other"
-                        genderDropdownExpanded = false
-                    },
-                    modifier = Modifier.height(standardHeight)
-                ) { Text("Other") }
-            }
-        }
+        GenderDropdown(
+            selectedGender = gender,
+            onGenderSelected = { gender = it },
+            modifier = Modifier
+                .width(280.dp)
+                .height(standardHeight),
+            standardHeight = standardHeight.value.toInt()
+        )
         Spacer(modifier = Modifier.height(8.dp))
 
         // Date of Birth picker

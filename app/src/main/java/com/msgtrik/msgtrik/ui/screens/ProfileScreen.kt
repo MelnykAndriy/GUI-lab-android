@@ -32,7 +32,17 @@ import com.msgtrik.msgtrik.models.auth.ProfileUpdateFields
 import com.msgtrik.msgtrik.models.auth.User
 import com.msgtrik.msgtrik.ui.components.UserAvatar
 import com.msgtrik.msgtrik.utils.DateUtils
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.TextFieldDefaults
 import java.util.Calendar
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import com.msgtrik.msgtrik.ui.components.GenderDropdown
 
 @Composable
 fun ProfileScreen(
@@ -91,35 +101,11 @@ fun ProfileScreen(
 
         // Gender field
         if (editMode) {
-            Box {
-                OutlinedTextField(
-                    value = gender.replaceFirstChar { it.uppercase() },
-                    onValueChange = { },
-                    label = { Text("Gender") },
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { genderDropdownExpanded = true },
-                    placeholder = { Text("Select Gender") }
-                )
-                DropdownMenu(
-                    expanded = genderDropdownExpanded,
-                    onDismissRequest = { genderDropdownExpanded = false },
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                ) {
-                    listOf("Male", "Female", "Other").forEach { option ->
-                        DropdownMenuItem(
-                            onClick = {
-                                gender = option.lowercase()
-                                genderDropdownExpanded = false
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(option)
-                        }
-                    }
-                }
-            }
+            GenderDropdown(
+                selectedGender = gender,
+                onGenderSelected = { gender = it },
+                modifier = Modifier.fillMaxWidth()
+            )
         } else {
             Text(
                 text = "Gender: ${user.profile.gender?.replaceFirstChar { it.uppercase() } ?: "N/A"}",
@@ -134,7 +120,11 @@ fun ProfileScreen(
                 DateUtils.parseDisplayDate(dob)
             } else {
                 val calendar = Calendar.getInstance()
-                Triple(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+                Triple(
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                )
             }
 
             OutlinedButton(onClick = {
@@ -146,7 +136,11 @@ fun ProfileScreen(
             }
         } else {
             Text(
-                text = "Date of Birth: ${if (user.profile.dob != null) DateUtils.formatDateForDisplay(user.profile.dob) else "N/A"}",
+                text = "Date of Birth: ${
+                    if (user.profile.dob != null) DateUtils.formatDateForDisplay(
+                        user.profile.dob
+                    ) else "N/A"
+                }",
                 style = MaterialTheme.typography.body1
             )
         }
