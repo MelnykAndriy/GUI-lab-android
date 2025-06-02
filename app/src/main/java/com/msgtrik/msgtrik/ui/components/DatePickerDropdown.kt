@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.msgtrik.msgtrik.R
 import com.msgtrik.msgtrik.utils.DateUtils
 import java.util.Calendar
 
@@ -58,7 +59,7 @@ fun DatePickerDropdown(
             trailingIcon = {
                 IconButton(
                     onClick = {
-                        DatePickerDialog(context, { _, y, m, d ->
+                        DatePickerDialog(context, R.style.PurpleDatePicker, { _, y, m, d ->
                             onDateSelected(String.format("%04d-%02d-%02d", y, m + 1, d))
                         }, year, month, day).apply {
                             datePicker.maxDate = maxDate

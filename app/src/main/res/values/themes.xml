@@ -6,4 +6,17 @@
     </style>
 
     <style name="Theme.Msgtrik" parent="Base.Theme.Msgtrik" />
+
+    <style name="PurpleDatePicker" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorAccent">@color/purple_web</item>
+        <item name="android:colorAccent">@color/purple_web</item>
+        <item name="colorPrimary">@color/purple_web</item>
+        <item name="android:colorPrimary">@color/purple_web</item>
+        <item name="android:buttonBarPositiveButtonStyle">@style/PurpleButton</item>
+        <item name="android:buttonBarNegativeButtonStyle">@style/PurpleButton</item>
+    </style>
+
+    <style name="PurpleButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/purple_web</item>
+    </style>
 </resources>
