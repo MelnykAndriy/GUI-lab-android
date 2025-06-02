@@ -52,6 +52,8 @@ import java.util.regex.Pattern
 import com.msgtrik.msgtrik.ui.components.GenderDropdown
 import com.msgtrik.msgtrik.ui.theme.Dimensions
 import com.msgtrik.msgtrik.ui.components.DatePickerDropdown
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 
 @Composable
 fun RegisterScreen(onRegisterSuccess: () -> Unit) {
@@ -64,6 +66,9 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
+    val emailInteractionSource = remember { MutableInteractionSource() }
+    val isEmailFocused by emailInteractionSource.collectIsFocusedAsState()
+    var wasEmailFocused by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     // Email validation pattern
@@ -88,6 +93,14 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             else -> null
         }
     }
+
+    // Validate email when focus is lost
+    if (!isEmailFocused && wasEmailFocused && email.isNotEmpty()) {
+        emailError = if (!emailPattern.matcher(email).matches()) {
+            "Please enter a valid email address"
+        } else null
+    }
+    wasEmailFocused = isEmailFocused
 
     Column(
         modifier = Modifier
@@ -144,15 +157,17 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
         // Email field with validation
         OutlinedTextField(
             value = email,
-            onValueChange = {
+            onValueChange = { 
                 email = it
-                emailError = if (it.isNotEmpty() && !emailPattern.matcher(it).matches()) {
-                    "Please enter a valid email address"
-                } else null
+                // Clear error when user starts typing again
+                if (emailError != null) {
+                    emailError = null
+                }
             },
             label = { Text("Email") },
             isError = emailError != null,
-            modifier = Modifier.width(Dimensions.InputFieldWidth)
+            modifier = Modifier.width(Dimensions.InputFieldWidth),
+            interactionSource = emailInteractionSource
         )
         if (emailError != null) {
             Text(
