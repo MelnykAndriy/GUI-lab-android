@@ -42,6 +42,7 @@ import com.msgtrik.msgtrik.models.auth.AuthResponse
 import com.msgtrik.msgtrik.models.auth.UserRegisterRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
 import com.msgtrik.msgtrik.ui.activities.LoginActivity
+import com.msgtrik.msgtrik.utils.DateUtils
 import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -236,12 +237,14 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
 
         // Date of Birth picker
         val calendar = Calendar.getInstance()
-        val year = dob.take(4).toIntOrNull() ?: calendar.get(Calendar.YEAR)
-        val month = dob.drop(5).take(2).toIntOrNull()?.minus(1) ?: calendar.get(Calendar.MONTH)
-        val day = dob.takeLast(2).toIntOrNull() ?: calendar.get(Calendar.DAY_OF_MONTH)
+        val (year, month, day) = if (dob.isNotEmpty()) {
+            DateUtils.parseDisplayDate(dob)
+        } else {
+            Triple(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+        }
 
         OutlinedTextField(
-            value = dob,
+            value = if (dob.isNotEmpty()) DateUtils.formatDateForDisplay(dob) else "",
             onValueChange = { },
             label = { Text("Date of Birth") },
             readOnly = true,
@@ -266,7 +269,13 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             onClick = {
                 isLoading = true
                 errorMessage = null
-                val request = UserRegisterRequest(name, email, password, gender, dob)
+                val request = UserRegisterRequest(
+                    name,
+                    email,
+                    password,
+                    gender,
+                    DateUtils.formatDateForApi(dob)
+                )
                 RetrofitClient.authService.register(request)
                     .enqueue(object : Callback<AuthResponse> {
                         override fun onResponse(

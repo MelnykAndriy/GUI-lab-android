@@ -29,7 +29,7 @@ interface AuthService {
     @GET("/api/users/me/")
     fun getCurrentUser(): Call<User>
 
-    @PUT("/api/users/me")
+    @PUT("/api/users/me/")
     fun updateProfile(@Body body: UserProfileUpdateRequest): Call<User>
 
     @Multipart

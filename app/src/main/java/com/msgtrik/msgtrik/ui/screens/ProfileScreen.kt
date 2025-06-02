@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.msgtrik.msgtrik.models.auth.ProfileUpdateFields
 import com.msgtrik.msgtrik.models.auth.User
 import com.msgtrik.msgtrik.ui.components.UserAvatar
+import com.msgtrik.msgtrik.utils.DateUtils
 import java.util.Calendar
 
 @Composable
@@ -92,22 +93,28 @@ fun ProfileScreen(
         if (editMode) {
             Box {
                 OutlinedTextField(
-                    value = gender,
+                    value = gender.replaceFirstChar { it.uppercase() },
                     onValueChange = { },
                     label = { Text("Gender") },
+                    readOnly = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { genderDropdownExpanded = true }
+                        .clickable { genderDropdownExpanded = true },
+                    placeholder = { Text("Select Gender") }
                 )
                 DropdownMenu(
                     expanded = genderDropdownExpanded,
-                    onDismissRequest = { genderDropdownExpanded = false }
+                    onDismissRequest = { genderDropdownExpanded = false },
+                    modifier = Modifier.fillMaxWidth(0.9f)
                 ) {
-                    listOf("male", "female", "other").forEach { option ->
-                        DropdownMenuItem(onClick = {
-                            gender = option
-                            genderDropdownExpanded = false
-                        }) {
+                    listOf("Male", "Female", "Other").forEach { option ->
+                        DropdownMenuItem(
+                            onClick = {
+                                gender = option.lowercase()
+                                genderDropdownExpanded = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Text(option)
                         }
                     }
@@ -115,7 +122,7 @@ fun ProfileScreen(
             }
         } else {
             Text(
-                text = "Gender: ${user.profile.gender ?: "N/A"}",
+                text = "Gender: ${user.profile.gender?.replaceFirstChar { it.uppercase() } ?: "N/A"}",
                 style = MaterialTheme.typography.body1
             )
         }
@@ -123,20 +130,23 @@ fun ProfileScreen(
 
         // Date of Birth field
         if (editMode) {
-            val calendar = Calendar.getInstance()
-            val year = dob.take(4).toIntOrNull() ?: calendar.get(Calendar.YEAR)
-            val month = dob.drop(5).take(2).toIntOrNull()?.minus(1) ?: calendar.get(Calendar.MONTH)
-            val day = dob.takeLast(2).toIntOrNull() ?: calendar.get(Calendar.DAY_OF_MONTH)
+            val (year, month, day) = if (dob.isNotEmpty()) {
+                DateUtils.parseDisplayDate(dob)
+            } else {
+                val calendar = Calendar.getInstance()
+                Triple(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+            }
+
             OutlinedButton(onClick = {
                 DatePickerDialog(context, { _, y, m, d ->
                     dob = String.format("%04d-%02d-%02d", y, m + 1, d)
                 }, year, month, day).show()
             }, modifier = Modifier.fillMaxWidth()) {
-                Text(if (dob.isNotBlank()) dob else "Select Date of Birth")
+                Text(if (dob.isNotBlank()) DateUtils.formatDateForDisplay(dob) else "Select Date of Birth")
             }
         } else {
             Text(
-                text = "Date of Birth: ${user.profile.dob ?: "N/A"}",
+                text = "Date of Birth: ${if (user.profile.dob != null) DateUtils.formatDateForDisplay(user.profile.dob) else "N/A"}",
                 style = MaterialTheme.typography.body1
             )
         }
@@ -153,7 +163,7 @@ fun ProfileScreen(
                         ProfileUpdateFields(
                             name = name.text,
                             gender = gender,
-                            dob = dob
+                            dob = DateUtils.formatDateForApi(dob)
                         )
                     )
                     editMode = false

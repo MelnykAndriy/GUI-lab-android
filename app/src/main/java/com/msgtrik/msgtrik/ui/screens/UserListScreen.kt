@@ -44,7 +44,7 @@ import com.msgtrik.msgtrik.network.RetrofitClient
 import com.msgtrik.msgtrik.ui.components.StartChat
 import com.msgtrik.msgtrik.ui.components.UserAvatar
 import com.msgtrik.msgtrik.ui.components.UserListItem
-import com.msgtrik.msgtrik.utils.formatTimestamp
+import com.msgtrik.msgtrik.utils.DateUtils
 import kotlinx.coroutines.delay
 import retrofit2.Call
 import retrofit2.Callback
@@ -296,7 +296,7 @@ fun UserListScreen(
                                     ) {
                                         if (chat.lastMessage != null) {
                                             Text(
-                                                formatTimestamp(chat.lastMessage.timestamp),
+                                                DateUtils.formatDateForDisplay(chat.lastMessage.timestamp),
                                                 style = MaterialTheme.typography.caption,
                                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                                             )

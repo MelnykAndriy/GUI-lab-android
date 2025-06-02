@@ -50,7 +50,8 @@ import com.msgtrik.msgtrik.models.chat.NewMessageRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
 import com.msgtrik.msgtrik.ui.components.UserAvatar
 import com.msgtrik.msgtrik.ui.theme.ChatColors
-import com.msgtrik.msgtrik.utils.formatTimestamp
+import com.msgtrik.msgtrik.utils.DateUtils
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -404,7 +405,7 @@ fun MessageItem(message: Message) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = formatTimestamp(message.timestamp),
+                    text = DateUtils.formatDateForDisplay(message.timestamp),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                 )
@@ -418,4 +419,4 @@ fun MessageItem(message: Message) {
             }
         }
     }
-} 
+}
