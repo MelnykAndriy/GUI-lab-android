@@ -86,53 +86,32 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Name field
-        if (editMode) {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            Text(
-                text = "Name: ${user.profile.name ?: "N/A"}",
-                style = MaterialTheme.typography.body1
-            )
-        }
+        OutlinedTextField(
+            value = name,
+            onValueChange = { if (editMode) name = it },
+            label = { Text("Name") },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = editMode,
+            readOnly = !editMode
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         // Gender field
-        if (editMode) {
-            GenderDropdown(
-                selectedGender = gender,
-                onGenderSelected = { gender = it },
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            Text(
-                text = "Gender: ${user.profile.gender?.replaceFirstChar { it.uppercase() } ?: "N/A"}",
-                style = MaterialTheme.typography.body1
-            )
-        }
+        GenderDropdown(
+            selectedGender = gender,
+            onGenderSelected = { if (editMode) gender = it },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = editMode
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         // Date of Birth field
-        if (editMode) {
-            DatePickerDropdown(
-                selectedDate = dob,
-                onDateSelected = { dob = it },
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            Text(
-                text = "Date of Birth: ${
-                    if (user.profile.dob != null) DateUtils.formatDateForDisplay(
-                        user.profile.dob
-                    ) else "N/A"
-                }",
-                style = MaterialTheme.typography.body1
-            )
-        }
+        DatePickerDropdown(
+            selectedDate = dob,
+            onDateSelected = { if (editMode) dob = it },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = editMode
+        )
         Spacer(modifier = Modifier.height(24.dp))
 
         // Edit/Save buttons
