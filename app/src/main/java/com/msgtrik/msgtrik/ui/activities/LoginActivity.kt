@@ -2,6 +2,7 @@ package com.msgtrik.msgtrik.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -302,9 +303,11 @@ class LoginActivity : ComponentActivity() {
                                 else -> setError(errorResponse.message ?: "Login failed: ${response.message()}")
                             }
                         } else {
+                            Log.e("LoginActivity", "Login failed with empty error body: ${response.message()}")
                             setError("Login failed: ${response.message()}")
                         }
                     } catch (e: Exception) {
+                        Log.e("LoginActivity", "Error parsing error response", e)
                         setError("Login failed: ${response.message()}")
                     }
                 }
@@ -312,6 +315,7 @@ class LoginActivity : ComponentActivity() {
 
             override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
                 setLoading(false)
+                Log.e("LoginActivity", "Network error during login", t)
                 setError("Network error: Please check your internet connection")
             }
         })
