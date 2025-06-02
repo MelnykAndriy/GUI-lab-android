@@ -115,7 +115,7 @@ fun ProfileScreen(
                         ProfileUpdateFields(
                             name = name.text,
                             gender = gender,
-                            dob = DateUtils.formatDateForApi(dob)
+                            dob = dob
                         )
                     )
                     editMode = false
