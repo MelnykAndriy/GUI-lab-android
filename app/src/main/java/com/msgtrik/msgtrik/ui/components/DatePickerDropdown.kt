@@ -59,13 +59,16 @@ fun DatePickerDropdown(
             trailingIcon = {
                 IconButton(
                     onClick = {
-                        DatePickerDialog(context, R.style.PurpleDatePicker, { _, y, m, d ->
-                            onDateSelected(String.format("%04d-%02d-%02d", y, m + 1, d))
-                        }, year, month, day).apply {
-                            datePicker.maxDate = maxDate
-                            datePicker.minDate = minDate
-                        }.show()
-                    }
+                        if (enabled) {
+                            DatePickerDialog(context, R.style.PurpleDatePicker, { _, y, m, d ->
+                                onDateSelected(String.format("%04d-%02d-%02d", y, m + 1, d))
+                            }, year, month, day).apply {
+                                datePicker.maxDate = maxDate
+                                datePicker.minDate = minDate
+                            }.show()
+                        }
+                    },
+                    enabled = enabled
                 ) {
                     Icon(
                         imageVector = Icons.Default.CalendarToday,

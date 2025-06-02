@@ -40,7 +40,8 @@ fun GenderDropdown(
             placeholder = { Text("Select Gender") },
             trailingIcon = {
                 IconButton(
-                    onClick = { expanded = true }
+                    onClick = { if (enabled) expanded = true },
+                    enabled = enabled
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
@@ -50,20 +51,22 @@ fun GenderDropdown(
                 }
             }
         )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth(0.9f)
-        ) {
-            listOf("Male", "Female", "Other").forEach { option ->
-                DropdownMenuItem(
-                    onClick = {
-                        onGenderSelected(option.lowercase())
-                        expanded = false
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(option)
+        if (enabled) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth(0.9f)
+            ) {
+                listOf("Male", "Female", "Other").forEach { option ->
+                    DropdownMenuItem(
+                        onClick = {
+                            onGenderSelected(option.lowercase())
+                            expanded = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(option)
+                    }
                 }
             }
         }
