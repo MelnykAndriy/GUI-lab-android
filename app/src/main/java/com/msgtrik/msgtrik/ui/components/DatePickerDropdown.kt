@@ -27,14 +27,23 @@ fun DatePickerDropdown(
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
     
+    // Set maximum date as today
+    val maxDate = calendar.timeInMillis
+
+    // Store today's values for initial display
+    val todayYear = calendar.get(Calendar.YEAR)
+    val todayMonth = calendar.get(Calendar.MONTH)
+    val todayDay = calendar.get(Calendar.DAY_OF_MONTH)
+
+    // Set minimum date to 100 years ago
+    calendar.add(Calendar.YEAR, -100)
+    val minDate = calendar.timeInMillis
+
+    // Get the date to display (either selected date or today)
     val (year, month, day) = if (selectedDate.isNotEmpty()) {
         DateUtils.parseDisplayDate(selectedDate)
     } else {
-        Triple(
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
+        Triple(todayYear, todayMonth, todayDay)
     }
 
     Box(modifier = modifier) {
@@ -51,7 +60,10 @@ fun DatePickerDropdown(
                     onClick = {
                         DatePickerDialog(context, { _, y, m, d ->
                             onDateSelected(String.format("%04d-%02d-%02d", y, m + 1, d))
-                        }, year, month, day).show()
+                        }, year, month, day).apply {
+                            datePicker.maxDate = maxDate
+                            datePicker.minDate = minDate
+                        }.show()
                     }
                 ) {
                     Icon(
