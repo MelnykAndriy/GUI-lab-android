@@ -1,9 +1,9 @@
 package com.msgtrik.msgtrik.ui.screens
 
-import android.app.DatePickerDialog
 import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -37,23 +35,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
 import com.msgtrik.msgtrik.R
 import com.msgtrik.msgtrik.models.auth.AuthResponse
+import com.msgtrik.msgtrik.models.auth.ErrorResponse
 import com.msgtrik.msgtrik.models.auth.UserRegisterRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
 import com.msgtrik.msgtrik.ui.activities.LoginActivity
+import com.msgtrik.msgtrik.ui.components.DatePickerDropdown
+import com.msgtrik.msgtrik.ui.components.GenderDropdown
+import com.msgtrik.msgtrik.ui.theme.Dimensions
 import com.msgtrik.msgtrik.utils.DateUtils
 import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.Calendar
 import java.util.regex.Pattern
-import com.msgtrik.msgtrik.ui.components.GenderDropdown
-import com.msgtrik.msgtrik.ui.theme.Dimensions
-import com.msgtrik.msgtrik.ui.components.DatePickerDropdown
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 
 @Composable
 fun RegisterScreen(onRegisterSuccess: () -> Unit) {
@@ -159,19 +156,18 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             value = email,
             onValueChange = { 
                 email = it
-                // Clear error when user starts typing again
-                if (emailError != null) {
-                    emailError = null
-                }
+                // Clear errors when user starts typing again
+                emailError = null
+                errorMessage = null
             },
             label = { Text("Email") },
-            isError = emailError != null,
+            isError = emailError != null || errorMessage?.contains("Email already exists") == true,
             modifier = Modifier.width(Dimensions.InputFieldWidth),
             interactionSource = emailInteractionSource
         )
-        if (emailError != null) {
+        if (emailError != null || errorMessage?.contains("Email already exists") == true) {
             Text(
-                text = emailError!!,
+                text = emailError ?: errorMessage!!,
                 color = MaterialTheme.colors.error,
                 style = MaterialTheme.typography.caption,
                 modifier = Modifier.padding(start = 16.dp)
@@ -217,11 +213,6 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (errorMessage != null) {
-            Text(errorMessage!!, color = MaterialTheme.colors.error)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
         Button(
             onClick = {
                 isLoading = true
@@ -250,9 +241,13 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                                 RetrofitClient.init(context.applicationContext)
                                 onRegisterSuccess()
                             } else {
-                                errorMessage =
-                                    "Registration failed: " + (response.errorBody()?.string()
-                                        ?: "Unknown error")
+                                try {
+                                    val errorBody = response.errorBody()?.string()
+                                    val errorJson = Gson().fromJson(errorBody, ErrorResponse::class.java)
+                                    errorMessage = errorJson.message
+                                } catch (e: Exception) {
+                                    errorMessage = "Registration failed: ${response.message()}"
+                                }
                             }
                         }
 
