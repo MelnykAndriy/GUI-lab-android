@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import com.msgtrik.msgtrik.ui.components.GenderDropdown
+import com.msgtrik.msgtrik.ui.components.DatePickerDropdown
 import com.msgtrik.msgtrik.ui.theme.Dimensions
 
 @Composable
@@ -117,24 +118,11 @@ fun ProfileScreen(
 
         // Date of Birth field
         if (editMode) {
-            val (year, month, day) = if (dob.isNotEmpty()) {
-                DateUtils.parseDisplayDate(dob)
-            } else {
-                val calendar = Calendar.getInstance()
-                Triple(
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
-                )
-            }
-
-            OutlinedButton(onClick = {
-                DatePickerDialog(context, { _, y, m, d ->
-                    dob = String.format("%04d-%02d-%02d", y, m + 1, d)
-                }, year, month, day).show()
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text(if (dob.isNotBlank()) DateUtils.formatDateForDisplay(dob) else "Select Date of Birth")
-            }
+            DatePickerDropdown(
+                selectedDate = dob,
+                onDateSelected = { dob = it },
+                modifier = Modifier.fillMaxWidth()
+            )
         } else {
             Text(
                 text = "Date of Birth: ${
