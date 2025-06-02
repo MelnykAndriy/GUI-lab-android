@@ -21,7 +21,6 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -44,6 +43,7 @@ import com.msgtrik.msgtrik.models.auth.AuthResponse
 import com.msgtrik.msgtrik.models.auth.ErrorResponse
 import com.msgtrik.msgtrik.models.auth.LoginRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
+import com.msgtrik.msgtrik.ui.theme.MsgtrikTheme
 import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -77,13 +77,8 @@ class LoginActivity : ComponentActivity() {
         }
 
         setContent {
-            MaterialTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    LoginScreen()
-                }
+            MsgtrikTheme {
+                LoginScreen()
             }
         }
     }

@@ -1,29 +1,21 @@
 package com.msgtrik.msgtrik.ui.activities
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.ui.Modifier
 import com.msgtrik.msgtrik.ui.screens.RegisterScreen
+import com.msgtrik.msgtrik.ui.theme.MsgtrikTheme
 
 class RegisterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    RegisterScreen(onRegisterSuccess = {
-                        startActivity(Intent(this, MainActivity::class.java))
+            MsgtrikTheme {
+                RegisterScreen(
+                    onRegisterSuccess = {
                         finish()
-                    })
-                }
+                    }
+                )
             }
         }
     }
