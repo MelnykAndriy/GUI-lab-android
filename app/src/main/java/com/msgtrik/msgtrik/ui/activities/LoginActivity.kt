@@ -50,6 +50,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.regex.Pattern
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 
 class LoginActivity : ComponentActivity() {
     private lateinit var preferenceManager: PreferenceManager
@@ -94,7 +96,18 @@ class LoginActivity : ComponentActivity() {
         var passwordError by remember { mutableStateOf<String?>(null) }
         var showPassword by remember { mutableStateOf(false) }
         var hasAttemptedLogin by remember { mutableStateOf(false) }
+        val emailInteractionSource = remember { MutableInteractionSource() }
+        val isEmailFocused by emailInteractionSource.collectIsFocusedAsState()
+        var wasEmailFocused by remember { mutableStateOf(false) }
         val context = LocalContext.current
+
+        // Validate email when focus is lost
+        if (!isEmailFocused && wasEmailFocused && email.isNotEmpty()) {
+            emailError = if (!emailPattern.matcher(email).matches()) {
+                "Please enter a valid email address"
+            } else null
+        }
+        wasEmailFocused = isEmailFocused
 
         Column(
             modifier = Modifier
@@ -123,21 +136,18 @@ class LoginActivity : ComponentActivity() {
                 onValueChange = { 
                     email = it
                     // Clear errors when user types
-                    if (hasAttemptedLogin) {
-                        emailError = if (!emailPattern.matcher(it).matches()) {
-                            "Please enter a valid email address"
-                        } else null
-                        // Clear credential error when user starts typing
-                        if (errorMessage?.contains("Incorrect email or password") == true) {
-                            errorMessage = null
-                            passwordError = null
-                        }
+                    emailError = null
+                    // Clear credential error when user starts typing
+                    if (errorMessage?.contains("Incorrect email or password") == true) {
+                        errorMessage = null
+                        passwordError = null
                     }
                 },
                 label = { Text("Email") },
                 isError = emailError != null || errorMessage?.contains("Incorrect email or password") == true,
                 modifier = Modifier.width(Dimensions.InputFieldWidth),
-                singleLine = true
+                singleLine = true,
+                interactionSource = emailInteractionSource
             )
             if (emailError != null) {
                 Text(
