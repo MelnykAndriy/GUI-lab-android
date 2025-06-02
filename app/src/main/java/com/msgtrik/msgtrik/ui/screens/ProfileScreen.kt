@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import com.msgtrik.msgtrik.ui.components.GenderDropdown
+import com.msgtrik.msgtrik.ui.theme.Dimensions
 
 @Composable
 fun ProfileScreen(

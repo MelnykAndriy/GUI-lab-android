@@ -50,6 +50,8 @@ import retrofit2.Response
 import java.util.Calendar
 import java.util.regex.Pattern
 import com.msgtrik.msgtrik.ui.components.GenderDropdown
+import com.msgtrik.msgtrik.ui.theme.Dimensions
+import com.msgtrik.msgtrik.ui.components.DatePickerDropdown
 
 @Composable
 fun RegisterScreen(onRegisterSuccess: () -> Unit) {
@@ -60,13 +62,9 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
     var dob by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var genderDropdownExpanded by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
-
-    // Standard height for all input fields and buttons
-    val standardHeight = 56.dp
 
     // Email validation pattern
     val emailPattern = Pattern.compile(
@@ -139,9 +137,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             value = name,
             onValueChange = { name = it },
             label = { Text("Name") },
-            modifier = Modifier
-                .width(280.dp)
-                .height(standardHeight)
+            modifier = Modifier.width(Dimensions.InputFieldWidth)
         )
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -156,9 +152,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             },
             label = { Text("Email") },
             isError = emailError != null,
-            modifier = Modifier
-                .width(280.dp)
-                .height(standardHeight)
+            modifier = Modifier.width(Dimensions.InputFieldWidth)
         )
         if (emailError != null) {
             Text(
@@ -180,9 +174,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
             isError = passwordError != null,
-            modifier = Modifier
-                .width(280.dp)
-                .height(standardHeight)
+            modifier = Modifier.width(Dimensions.InputFieldWidth)
         )
         if (passwordError != null) {
             Text(
@@ -198,35 +190,15 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
         GenderDropdown(
             selectedGender = gender,
             onGenderSelected = { gender = it },
-            modifier = Modifier
-                .width(280.dp)
-                .height(standardHeight),
-            standardHeight = standardHeight.value.toInt()
+            modifier = Modifier.width(Dimensions.InputFieldWidth)
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         // Date of Birth picker
-        val calendar = Calendar.getInstance()
-        val (year, month, day) = if (dob.isNotEmpty()) {
-            DateUtils.parseDisplayDate(dob)
-        } else {
-            Triple(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-        }
-
-        OutlinedTextField(
-            value = if (dob.isNotEmpty()) DateUtils.formatDateForDisplay(dob) else "",
-            onValueChange = { },
-            label = { Text("Date of Birth") },
-            readOnly = true,
-            modifier = Modifier
-                .width(280.dp)
-                .height(standardHeight)
-                .clickable {
-                    DatePickerDialog(context, { _, y, m, d ->
-                        dob = String.format("%04d-%02d-%02d", y, m + 1, d)
-                    }, year, month, day).show()
-                },
-            placeholder = { Text("Select Date of Birth", color = MaterialTheme.colors.primary) }
+        DatePickerDropdown(
+            selectedDate = dob,
+            onDateSelected = { dob = it },
+            modifier = Modifier.width(Dimensions.InputFieldWidth)
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -276,7 +248,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                     })
             },
             modifier = Modifier
-                .width(280.dp),
+                .width(Dimensions.InputFieldWidth),
             enabled = !isLoading &&
                     name.isNotBlank() &&
                     email.isNotBlank() && emailError == null &&

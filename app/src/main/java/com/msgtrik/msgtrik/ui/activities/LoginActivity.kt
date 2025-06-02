@@ -43,6 +43,7 @@ import com.msgtrik.msgtrik.models.auth.AuthResponse
 import com.msgtrik.msgtrik.models.auth.ErrorResponse
 import com.msgtrik.msgtrik.models.auth.LoginRequest
 import com.msgtrik.msgtrik.network.RetrofitClient
+import com.msgtrik.msgtrik.ui.theme.Dimensions
 import com.msgtrik.msgtrik.ui.theme.MsgtrikTheme
 import com.msgtrik.msgtrik.utils.PreferenceManager
 import retrofit2.Call
@@ -135,7 +136,7 @@ class LoginActivity : ComponentActivity() {
                 },
                 label = { Text("Email") },
                 isError = emailError != null || errorMessage?.contains("Incorrect email or password") == true,
-                modifier = Modifier.width(280.dp),
+                modifier = Modifier.width(Dimensions.InputFieldWidth),
                 singleLine = true
             )
             if (emailError != null) {
@@ -171,7 +172,7 @@ class LoginActivity : ComponentActivity() {
                     }
                 },
                 isError = passwordError != null || errorMessage?.contains("Incorrect email or password") == true,
-                modifier = Modifier.width(280.dp),
+                modifier = Modifier.width(Dimensions.InputFieldWidth),
                 singleLine = true
             )
             if (passwordError != null) {
