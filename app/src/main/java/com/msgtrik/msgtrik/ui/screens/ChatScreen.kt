@@ -148,6 +148,13 @@ fun ChatScreen(
 
                                 // Mark messages as read when we receive new ones
                                 markMessagesAsRead()
+
+                                // Scroll to bottom (item 0 due to reverseLayout) when receiving messages from the selected user
+                                if (newMessagesList.any { !it.isSentByUser }) {
+                                    coroutineScope.launch {
+                                        listState.animateScrollToItem(0)
+                                    }
+                                }
                             }
                         } else {
                             // For pagination, merge with existing messages
