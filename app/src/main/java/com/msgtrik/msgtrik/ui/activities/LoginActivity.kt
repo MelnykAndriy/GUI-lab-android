@@ -230,7 +230,7 @@ class LoginActivity : ComponentActivity() {
                         }
                     }
                 },
-                modifier = Modifier.width(280.dp),
+                modifier = Modifier.width(Dimensions.InputFieldWidth),
                 enabled = !isLoading
             ) {
                 if (isLoading) {
@@ -249,7 +249,7 @@ class LoginActivity : ComponentActivity() {
                 onClick = {
                     context.startActivity(Intent(context, RegisterActivity::class.java))
                 },
-                modifier = Modifier.width(280.dp)
+                modifier = Modifier.width(Dimensions.InputFieldWidth)
             ) {
                 Text("Register")
             }
